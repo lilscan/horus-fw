@@ -156,7 +156,9 @@ uint8_t gc_execute_line(char *line)
             axis_command = AXIS_COMMAND_MOTION_MODE; 
             gc_block.modal.motion = MOTION_MODE_LINEAR;
             word_bit = MODAL_GROUP_G1; 
-
+            break;
+          case 50:
+            gc_block.non_modal_command = NON_MODAL_RESET_POSITION;
             break;
           default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported G command]
         }  
@@ -649,9 +651,16 @@ uint8_t gc_execute_line(char *line)
     case NON_MODAL_RESET_COORDINATE_OFFSET: 
       clear_vector(gc_state.coord_offset); // Disable G92 offsets by zeroing offset vector.
       break;
+    case NON_MODAL_RESET_POSITION:
+      clear_vector(sys.position); // Reset system position.
+      plan_reset(); // Clear block buffer and planner variables.
+      // Sync cleared gcode and planner positions to current system position.
+      plan_sync_position();
+      gc_sync_position();
+      break;
   }
 
-  
+
   // [20. Motion modes ]:
   // NOTE: Commands G10,G28,G30,G92 lock out and prevent axis words from use in motion modes. 
   // Enter motion modes only if there are axis words or a motion mode command word in the block.

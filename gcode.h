@@ -69,6 +69,7 @@
 #define NON_MODAL_ABSOLUTE_OVERRIDE 7 // G53
 #define NON_MODAL_SET_COORDINATE_OFFSET 8 // G92
 #define NON_MODAL_RESET_COORDINATE_OFFSET 9 //G92.1
+#define NON_MODAL_RESET_POSITION 10 //G50
 
 // Modal Group G1: Motion modes
 #define MOTION_MODE_SEEK 0 // G0 (Default: Must be zero)

@@ -20,7 +20,8 @@ The default baudrate is 115200.
 
 ## Implemented G Codes
 
-*   G1  - Circular movement
+*   G1   - Angular movement
+*   G50  - Reset all positions to zero
 *   M0   - Program pause
 *   M2   - Program end and reset
 *   M17  - Enable/Power stepper motor
@@ -28,3 +29,18 @@ The default baudrate is 115200.
 *   M50  - Read LDR
 *   M70  - Laser off
 *   M71  - Laser on
+
+## Build
+
+### Arduino
+
+Open *horus-fw.ino*, select your board and upload.
+
+### Make
+
+```bash
+sudo apt-get install gcc-avr avr-libc
+make
+```
+
+The binary *horus-fw.hex* can be flashed with [Horus GUI](https://github.com/bqlabs/horus).
