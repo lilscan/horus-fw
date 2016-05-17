@@ -355,7 +355,7 @@ void report_startup_line(uint8_t n, char *line)
 // Prints build info line
 void report_build_info(char *line)
 {
-  printPgmString(PSTR("[" HORUS_VERSION "." HORUS_VERSION_BUILD ":"));
+  printPgmString(PSTR("[" HORUS_VERSION ":"));
   printString(line);
   printPgmString(PSTR("]\r\n"));
 }

@@ -1,6 +1,6 @@
 # Horus 3D Scanner Firmware
 
-This firmware is written in C.
+This firmware is written in C. Version 0.2.
 
 Derived from Grbl v0.9 by Jesús Arroyo (Mundo Reader S.L.)
 
