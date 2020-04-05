@@ -84,10 +84,8 @@ void laser_set(uint8_t id, uint8_t value)
 void laser_run(uint8_t id, uint8_t value)
 {
   if (sys.state == STATE_CHECK_MODE) { return; }
-
-  protocol_auto_cycle_start();
-  protocol_buffer_synchronize();
-
+//  protocol_auto_cycle_start();
+//  protocol_buffer_synchronize();
   laser_set(id-1, value);
 }
 
