@@ -31,6 +31,7 @@
 #include "protocol.h"
 #include "gcode.h"
 #include "motion_control.h"
+#include "light_control.h"
 #include "probe.h"
 #include "report.h"
 #include "planner.h"
@@ -107,6 +108,7 @@ uint8_t gc_execute_line(char *line)
   
   // Initialize bitflag tracking variables for axis indices compatible operations.
   uint8_t axis_words = 0; // XYZ tracking
+  uint8_t ijk_words = 0; // IJK tracking 
 
   // Initialize command and value words variables. Tracks words contained in this block.
   uint16_t command_words = 0; // G and M command words. Also used for modal group violations.
@@ -118,7 +120,7 @@ uint8_t gc_execute_line(char *line)
      perform initial error-checks for command word modal group violations, for any repeated
      words, and for negative values set for the value words F, N, P, T, and S. */
      
-  uint8_t word_bit; // Bit-value for assigning tracking variables
+  uint8_t word_bit = 0; // Bit-value for assigning tracking variables
   uint8_t char_counter = 0;  
   char letter;
   float value;
@@ -186,21 +188,34 @@ uint8_t gc_execute_line(char *line)
           case 17: gc_block.modal.motor = MOTOR_ENABLE; break;
           case 18: gc_block.modal.motor = MOTOR_DISABLE; break;
           case 50: gc_block.modal.ldr = LDR_READ; break;
-          case 70: gc_block.modal.laser = LASER_DISABLE; break;
-          case 71: gc_block.modal.laser = LASER_ENABLE; break;
-
+          case 70:
+            word_bit = MODAL_GROUP_M70; 
+            gc_block.modal.laser = LASER_DISABLE; 
+            break;
+          case 71:
+            word_bit = MODAL_GROUP_M70; 
+            gc_block.modal.laser = LASER_ENABLE;
+            break;
+          case 72:
+            word_bit = MODAL_GROUP_M72;
+            gc_block.modal.light = LIGHT_RGB_SET;
+            break;
+          case 73:
+            word_bit = MODAL_GROUP_M72;
+            gc_block.modal.light = LIGHT_RGBW_SET;
+            break;
           default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND); // [Unsupported M command]
-        }            
-      
+        }
+
         // Check for more than one command per modal group violations in the current block
         // NOTE: Variable 'word_bit' is always assigned, if the command is valid.
         if ( bit_istrue(command_words,bit(word_bit)) ) { FAIL(STATUS_GCODE_MODAL_GROUP_VIOLATION); }
         command_words |= bit(word_bit);
         break;
-      
+
       // NOTE: All remaining letters assign values.
-      default: 
-  
+      default:
+
         /* Non-Command Words: This initial parsing phase only checks for repeats of the remaining
            legal g-code words and stores their value. Error-checking is performed later since some
            words (I,J,K,L,P,R) have multiple connotations and/or depend on the issued commands. */
@@ -208,11 +223,18 @@ uint8_t gc_execute_line(char *line)
           case 'F': word_bit = WORD_F; gc_block.values.f = value; break;
           case 'T': word_bit = WORD_T; gc_block.values.t = int_value; break; // gc.values.t = int_value;
           case 'X': word_bit = WORD_X; gc_block.values.xyz[X_AXIS] = value; axis_words |= (1<<X_AXIS); break;
+
+          // values used for light settings
+          case 'I': word_bit = WORD_I; gc_block.values.ijk[X_AXIS] = value; ijk_words |= (1<<X_AXIS); break;
+          case 'J': word_bit = WORD_J; gc_block.values.ijk[Y_AXIS] = value; ijk_words |= (1<<Y_AXIS); break;
+          case 'K': word_bit = WORD_K; gc_block.values.ijk[Z_AXIS] = value; ijk_words |= (1<<Z_AXIS); break;
+          case 'P': word_bit = WORD_P; gc_block.values.p = value; break;
+
           /*case 'Y': word_bit = WORD_Y; gc_block.values.xyz[Y_AXIS] = value; axis_words |= (1<<Y_AXIS); break;
           case 'Z': word_bit = WORD_Z; gc_block.values.xyz[Z_AXIS] = value; axis_words |= (1<<Z_AXIS); break;*/
           default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
         } 
-        
+
         // NOTE: Variable 'word_bit' is always assigned, if the non-command letter is valid.
         if (bit_istrue(value_words,bit(word_bit))) { FAIL(STATUS_GCODE_WORD_REPEATED); } // [Word repeated]
         // Check for invalid negative values for words F, N, P, T, and S.
@@ -221,7 +243,6 @@ uint8_t gc_execute_line(char *line)
           if (value < 0.0) { FAIL(STATUS_NEGATIVE_VALUE); } // [Word value cannot be negative]
         }
         value_words |= bit(word_bit); // Flag to indicate parameter assigned.
-      
     }   
   } 
   // Parsing complete!
@@ -546,6 +567,36 @@ uint8_t gc_execute_line(char *line)
   
   // [21. Program flow ]: No error checks required.
 
+  //[Light control]:
+  if(bit_istrue(command_words,bit(MODAL_GROUP_M72)))
+  {
+      switch(gc_block.modal.light)
+      {
+      case LIGHT_RGB_SET:
+
+          light_set_rgb(16,trunc(gc_block.values.ijk[X_AXIS]/100*255),
+                        trunc(gc_block.values.ijk[Y_AXIS]/100*255),
+                        trunc(gc_block.values.ijk[Z_AXIS]/100*255));
+          gc_state.modal.light = LIGHT_RGB_SET;
+          bit_false(value_words,bit(WORD_I));
+          bit_false(value_words,bit(WORD_J));
+          bit_false(value_words,bit(WORD_K));
+          break;
+      case LIGHT_RGBW_SET:
+          light_set_rgbw(16,trunc(gc_block.values.ijk[X_AXIS]/100*255),
+                        trunc(gc_block.values.ijk[Y_AXIS]/100*255),
+                        trunc(gc_block.values.ijk[Z_AXIS]/100*255),
+                        trunc(gc_block.values.p/100*255));
+          gc_state.modal.light = LIGHT_RGBW_SET;
+          bit_false(value_words,bit(WORD_I));
+          bit_false(value_words,bit(WORD_J));
+          bit_false(value_words,bit(WORD_K));
+          bit_false(value_words,bit(WORD_P));
+          break;
+      default: FAIL(STATUS_GCODE_UNSUPPORTED_COMMAND);
+      }
+  }
+
   // [0. Non-specific error-checks]: Complete unused value words check,
   // radius mode, or axis words that aren't used in the block.  
   bit_false(value_words,(bit(WORD_N)|bit(WORD_F)|bit(WORD_S)|bit(WORD_T))); // Remove single-meaning value words. 
@@ -715,10 +766,13 @@ uint8_t gc_execute_line(char *line)
   }
 
   // [22. Laser control ]:  
-  gc_state.modal.laser = gc_block.modal.laser;
-  laser_run(gc_block.values.t, gc_block.modal.laser);
+  if(bit_istrue(command_words,bit(MODAL_GROUP_M70)) )
+  {
+     gc_state.modal.laser = gc_block.modal.laser;
+     laser_run(gc_block.values.t, gc_block.modal.laser);
+  }
 
-  // [23. Motor control ]:  
+  // [24. Motor control ]:  
   gc_state.modal.motor = gc_block.modal.motor;
   if (gc_block.modal.motor == MOTOR_ENABLE) {
     st_disable_on_idle(false);
@@ -728,7 +782,7 @@ uint8_t gc_execute_line(char *line)
     st_disable_on_idle(true);
     st_go_idle();
   }
-  // [23. LDR read ]:
+  // [24. LDR read ]:
   if (gc_block.modal.ldr == LDR_READ){
       print_ldr(gc_block.values.t);
   }

@@ -54,6 +54,7 @@
 #define OTHER_INPUT_T 13
 
 #define MODAL_GROUP_M70 14 // [M70,M71] Laser control
+#define MODAL_GROUP_M72 15 // [M72,M73] LED Light Settings
 
 // Define command actions for within execution-type modal groups (motion, stopping, non-modal). Used
 // internally by the parser to know which command to execute.
@@ -126,6 +127,10 @@
 #define MOTOR_ENABLE 1 // M17
 #define MOTOR_DISABLE 0 // M18
 
+// Modal Group: LED Light
+#define LIGHT_RGB_SET 1  // M72
+#define LIGHT_RGBW_SET 2  // M73
+
 // Modal Group: LDR
 #define LDR_READ 1
 
@@ -145,7 +150,6 @@
 
 
 
-
 // NOTE: When this struct is zeroed, the above defines set the defaults for the system.
 typedef struct {
   uint8_t motion;        // {G0,G1,G2,G3,G38.2,G80}
@@ -159,8 +163,9 @@ typedef struct {
   uint8_t coolant;       // {M7,M8,M9}
   uint8_t spindle;       // {M3,M4,M5}
   uint8_t laser;         // {M70,M71}
+  uint8_t light;         // {M72}
   uint8_t motor;         // {M17,M18}
-  uint8_t ldr;            // {M50}
+  uint8_t ldr;           // {M50}
 } gc_modal_t;  
 
 typedef struct {
