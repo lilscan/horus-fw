@@ -19,6 +19,7 @@
 */
 
 #include "ldr.h"
+#include "print.h"
 
 void ldr_init(void){
  ADCSRA |= ((1<<ADPS2)|(1<<ADPS1)|(1<<ADPS0));    //16Mhz/128 = 125Khz the ADC reference clock

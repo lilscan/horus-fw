@@ -27,6 +27,7 @@
 #include "system.h"
 #include "serial.h"
 #include "settings.h"
+#include "laser_control.h"
 #include "protocol.h"
 #include "gcode.h"
 #include "planner.h"
@@ -36,10 +37,8 @@
 #include "report.h"
 #include "ldr.h"
 
-
 // Declare system global variable structure
 system_t sys; 
-
 
 int main(void)
 {

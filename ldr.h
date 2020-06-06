@@ -18,17 +18,22 @@
   along with Horus.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef laser_control_h
-#define laser_control_h 
+#ifndef ldr_h
+#define ldr_h 
 
 #include <avr/io.h>
 #include <stdlib.h>
-#define F_CPU 16000000UL
+
+#ifndef F_CPU 
+  #define F_CPU 16000000UL
+#endif
+
 #include <util/delay.h>
 #define BAUDRATE 9600
 #define BAUD_PRESCALLER (((F_CPU / (BAUDRATE * 16UL))) - 1)
 
 void ldr_init(void);
 uint16_t ldr_read(uint8_t channel);
+void print_ldr(uint8_t tool);
 
 #endif
