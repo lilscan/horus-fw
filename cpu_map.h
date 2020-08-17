@@ -75,6 +75,9 @@
   #define PROBE_BIT       5  // Uno Analog Pin 5
   #define PROBE_MASK      (1<<PROBE_BIT)
 
+  // Define neo-pixel pin
+  #define ws2812_port B     // Data port 
+  #define ws2812_pin  3     // Data out pin
 #endif
 
 #ifdef CPU_MAP_ATMEGA328P // (Arduino Uno) Officially supported by Grbl.

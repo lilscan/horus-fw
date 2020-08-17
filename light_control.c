@@ -1,6 +1,3 @@
-
-
-#include "ws2812_config.h"
 #include "ws2812.h"
 #include "nuts_bolts.h"
 

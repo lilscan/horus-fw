@@ -4,8 +4,6 @@
  * Version 2.3  - Nev 29th 2015
  * Author: Tim (cpldcpu@gmail.com) 
  *
- * Please do not change this file! All configuration is handled in "ws2812_config.h"
- *
  * License: GNU GPL v2+ (see License.txt)
  +
  */ 
@@ -15,6 +13,7 @@
 
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include "system.h"
 
 ///////////////////////////////////////////////////////////////////////
 // Define Reset time in µs.
@@ -32,13 +31,7 @@
 ///////////////////////////////////////////////////////////////////////
 // Define I/O pin
 ///////////////////////////////////////////////////////////////////////
-#if !defined(ws2812_port)
-#define ws2812_port B   // Data port
-#endif
-
-#if !defined(ws2812_pin)
-#define ws2812_pin  3   // Data out pin
-#endif
+// --> moved to cpu_map.h
 
 /*
  *  Structure of the LED array
