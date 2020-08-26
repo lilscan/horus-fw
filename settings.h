@@ -28,7 +28,7 @@
 #define settings_h
 
 
-#define HORUS_VERSION "0.2"
+#define HORUS_VERSION "0.3"
 
 // Version of the EEPROM data. Will be used to migrate existing data from older versions of Horus
 // when firmware is upgraded. Always stored in byte 0 of eeprom
